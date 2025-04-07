@@ -1,14 +1,22 @@
 import { StyleSheet, FlatList, View, TouchableOpacity, Modal } from 'react-native';
-import { Collapsible } from '@/components/Collapsible';
-import { ExternalLink } from '@/components/ExternalLink';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import * as Contacts from 'expo-contacts';
+import * as Notifications from 'expo-notifications';
 import { useEffect, useState } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale/pt-BR';
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 export default function TabTwoScreen() {
   const [contacts, setContacts] = useState<Contacts.Contact[]>([]);
@@ -16,38 +24,40 @@ export default function TabTwoScreen() {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [notificationIds, setNotificationIds] = useState<Record<string, string>>({});
 
   useEffect(() => {
     (async () => {
-      const { status } = await Contacts.requestPermissionsAsync();
+      // Request permissions for contacts and notifications
+      const [contactsStatus, notificationStatus] = await Promise.all([
+        Contacts.requestPermissionsAsync(),
+        Notifications.requestPermissionsAsync(),
+      ]);
 
-      if (status === 'granted') {
+      if (contactsStatus.status === 'granted') {
         const { data } = await Contacts.getContactsAsync({
-          fields: [
-            Contacts.Fields.PhoneNumbers,
-            Contacts.Fields.Note // We'll use the note field to store our date
-          ],
+          fields: [Contacts.Fields.PhoneNumbers],
         });
 
         if (data.length > 0) {
           setContacts(data);
         }
       }
+
+      // Load scheduled notifications
+      const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+      const ids: Record<string, string> = {};
+      scheduledNotifications.forEach(notification => {
+        if (notification.content.data.contactId) {
+          ids[notification.content.data.contactId] = notification.identifier;
+        }
+      });
+      setNotificationIds(ids);
     })();
   }, []);
 
   const openContactModal = (contact: Contacts.Contact) => {
-    // Try to parse the date from the note field if it exists
-    if (contact.note) {
-      try {
-        const parsedDate = new Date(contact.note);
-        if (!isNaN(parsedDate.getTime())) {
-          setCurrentDate(parsedDate);
-        }
-      } catch (e) {
-        console.log("Couldn't parse date from note");
-      }
-    }
+    // Check if this contact already has a scheduled notification
     setSelectedContact(contact);
     setIsModalVisible(true);
   };
@@ -73,44 +83,71 @@ export default function TabTwoScreen() {
     }
   };
 
+  const scheduleNotification = async (contactId: string, contactName: string, date: Date) => {
+    // Cancel existing notification if there is one
+    if (notificationIds[contactId]) {
+      await Notifications.cancelScheduledNotificationAsync(notificationIds[contactId]);
+    }
+
+    // Schedule new notification
+    const notificationId = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Lembrete de pagamento',
+        body: `Hoje é o prazo máximo de ${contactName}`,
+        data: { contactId },
+      },
+      trigger: {
+        date,
+        hour: 9,
+        minute: 0,
+        repeats: false,
+      },
+    });
+
+    // Update our local state
+    setNotificationIds(prev => ({
+      ...prev,
+      [contactId]: notificationId,
+    }));
+  };
+
+  const cancelNotification = async (contactId: string) => {
+    if (notificationIds[contactId]) {
+      await Notifications.cancelScheduledNotificationAsync(notificationIds[contactId]);
+      const newIds = { ...notificationIds };
+      delete newIds[contactId];
+      setNotificationIds(newIds);
+    }
+  };
+
   const savePaymentDate = async () => {
     if (!selectedContact) return;
 
     try {
-      const { status } = await Contacts.requestPermissionsAsync();
-
-      if (status === 'granted') {
-        await Contacts.updateContactAsync({
-          ...selectedContact,
-          note: currentDate.toISOString(),
-        });
-      }
-
-      // Refresh the contacts list
-      const { data } = await Contacts.getContactsAsync({
-        fields: [Contacts.Fields.PhoneNumbers, Contacts.Fields.Note],
-      });
-      setContacts(data);
-
+      await scheduleNotification(
+        selectedContact.id!,
+        selectedContact.name || 'Contato sem Nome',
+        currentDate
+      );
       closeContactModal();
     } catch (error) {
-      console.error('Error saving payment date:', error);
+      console.error('Error scheduling notification:', error);
+    }
+  };
+
+  const removePaymentDate = async () => {
+    if (!selectedContact) return;
+
+    try {
+      await cancelNotification(selectedContact.id!);
+      closeContactModal();
+    } catch (error) {
+      console.error('Error canceling notification:', error);
     }
   };
 
   const renderContactItem = ({ item }: { item: Contacts.Contact }) => {
-    // Parse the payment date from the note field if it exists
-    let paymentDate = null;
-    if (item.note) {
-      try {
-        const parsedDate = new Date(item.note);
-        if (!isNaN(parsedDate.getTime())) {
-          paymentDate = parsedDate;
-        }
-      } catch (e) {
-        console.log("Couldn't parse date from note");
-      }
-    }
+    const hasNotification = !!notificationIds[item.id!];
 
     return (
       <ThemedView style={styles.contactItem}>
@@ -120,14 +157,27 @@ export default function TabTwoScreen() {
             {phone.number}
           </ThemedText>
         ))}
-        {paymentDate && (
+        {hasNotification && (
           <ThemedText style={styles.paymentDate}>
-            Payment due: {format(paymentDate, 'MMM dd, yyyy')}
+            Payment reminder set
           </ThemedText>
         )}
-        <TouchableOpacity onPress={() => openContactModal(item)}>
-          <ThemedText type="link">{paymentDate ? 'Edit Payment Date' : 'Set Payment Date'}</ThemedText>
-        </TouchableOpacity>
+        <View style={styles.contactActions}>
+          <TouchableOpacity onPress={() => openContactModal(item)}>
+            <ThemedText type="link">
+              {hasNotification ? 'Atualizar Lembrete' : 'Definir Lembrete'}
+            </ThemedText>
+          </TouchableOpacity>
+          {hasNotification && (
+            <TouchableOpacity
+              onPress={() => cancelNotification(item.id!)}
+              style={styles.removeButton}>
+              <ThemedText type="link" style={styles.removeButtonText}>
+                Remove
+              </ThemedText>
+            </TouchableOpacity>
+          )}
+        </View>
       </ThemedView>
     );
   };
@@ -144,14 +194,14 @@ export default function TabTwoScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Contacts</ThemedText>
+        <ThemedText type="title">Contatos</ThemedText>
       </ThemedView>
 
       {contacts.length > 0 ? (
         <FlatList
           data={contacts}
           renderItem={renderContactItem}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item.id!}
           scrollEnabled={false}
           contentContainerStyle={styles.listContainer}
         />
@@ -159,14 +209,6 @@ export default function TabTwoScreen() {
         <ThemedText style={styles.noContactsText}>No contacts found</ThemedText>
       )}
 
-      <Collapsible title="About this app">
-        <ThemedText>This app demonstrates how to access contacts on your device.</ThemedText>
-        <ExternalLink href="https://docs.expo.dev/versions/latest/sdk/contacts/">
-          <ThemedText type="link">Learn more about Expo Contacts</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-
-      {/* Contact Details Modal */}
       <Modal
         visible={isModalVisible}
         animationType="slide"
@@ -187,7 +229,7 @@ export default function TabTwoScreen() {
                 ))}
 
                 <ThemedText style={styles.dateLabel}>
-                  Payment Due Date:
+                  Data do Lembrete:
                 </ThemedText>
 
                 <TouchableOpacity
@@ -203,8 +245,9 @@ export default function TabTwoScreen() {
                     value={currentDate}
                     mode="date"
                     display="default"
+                    locale={ptBR}
                     onChange={handleDateChange}
-                    minimumDate={new Date()} // Only allow dates today or in the future
+                    minimumDate={new Date()}
                   />
                 )}
 
@@ -212,15 +255,25 @@ export default function TabTwoScreen() {
                   style={styles.saveButton}
                   onPress={savePaymentDate}>
                   <ThemedText type="defaultSemiBold" style={styles.saveButtonText}>
-                    Save Payment Date
+                    {notificationIds[selectedContact.id!] ? 'Atualizar Lembrete' : 'Definir Lembrete'}
                   </ThemedText>
                 </TouchableOpacity>
+
+                {notificationIds[selectedContact.id!] && (
+                  <TouchableOpacity
+                    style={styles.removeButtonModal}
+                    onPress={removePaymentDate}>
+                    <ThemedText type="defaultSemiBold" style={styles.removeButtonTextModal}>
+                      Remover Lembrete
+                    </ThemedText>
+                  </TouchableOpacity>
+                )}
 
                 <TouchableOpacity
                   style={styles.closeButton}
                   onPress={closeContactModal}>
                   <ThemedText type="defaultSemiBold" style={styles.closeButtonText}>
-                    Return to Contacts
+                    Retornar aos Contatos
                   </ThemedText>
                 </TouchableOpacity>
               </>
@@ -257,6 +310,17 @@ const styles = StyleSheet.create({
     marginTop: 4,
     color: '#4CAF50',
     fontWeight: 'bold',
+  },
+  contactActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  removeButton: {
+    marginLeft: 16,
+  },
+  removeButtonText: {
+    color: '#f44336',
   },
   listContainer: {
     paddingBottom: 16,
@@ -308,6 +372,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveButtonText: {
+    color: 'white',
+  },
+  removeButtonModal: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#f44336',
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  removeButtonTextModal: {
     color: 'white',
   },
   closeButton: {
