@@ -9,13 +9,17 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSContactsUsageDescription": "This app uses your contacts to update contact information"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": ["READ_CONTACTS", "WRITE_CONTACTS"]
     },
     "web": {
       "bundler": "metro",
@@ -31,6 +35,12 @@
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
+        }
+      ],
+      [
+      "expo-contacts",
+        {
+          "contactsPermission": "Allow $(PRODUCT_NAME) to access and update your contacts."
         }
       ]
     ],

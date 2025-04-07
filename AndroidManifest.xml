@@ -1,0 +1,8 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+  package="com.your.app.package">
+  
+  <uses-permission android:name="android.permission.READ_CONTACTS" />
+  <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+  
+  <!-- your other permissions -->
+</manifest>
