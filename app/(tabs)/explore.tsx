@@ -1,153 +1,144 @@
-import { StyleSheet, FlatList, View, TouchableOpacity, Modal } from 'react-native';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import * as Contacts from 'expo-contacts';
-import * as Notifications from 'expo-notifications';
-import { useEffect, useState } from 'react';
+import { FlatList, Modal, StyleSheet, TouchableOpacity, View } from "react-native"
+import ParallaxScrollView from "@/components/ParallaxScrollView";
+import { IconSymbol } from "@/components/ui/IconSymbol";
+import * as Contacts from "expo-contacts";
+import * as Notifications from "expo-notifications";
+import { useEffect, useState } from "react";
+import { ThemedView } from "@/components/ThemedView";
+import { ThemedText } from "@/components/ThemedText";
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { format } from 'date-fns';
+import { format as formatDateFns } from 'date-fns';
 import { ptBR } from 'date-fns/locale/pt-BR';
 
 Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-  }),
-});
+  async handleNotification() {
+    return {
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowAlert: true
+    }
+  }
+})
 
-export default function TabTwoScreen() {
+export default function Explore() {
   const [contacts, setContacts] = useState<Contacts.Contact[]>([]);
   const [selectedContact, setSelectedContact] = useState<Contacts.Contact | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [notificationIds, setNotificationIds] = useState<Record<string, string>>({});
+  const [currentDate, setCurrentDate] = useState<Date>();
+  const [notificationsIds, setNotificationsIds] = useState<Record<string, string>>({});
 
   useEffect(() => {
     (async () => {
-      // Request permissions for contacts and notifications
-      const [contactsStatus, notificationStatus] = await Promise.all([
+      const [contactStatus, notificationStatus] = await Promise.all([
         Contacts.requestPermissionsAsync(),
-        Notifications.requestPermissionsAsync(),
+        Notifications.requestPermissionsAsync()
       ]);
 
-      if (contactsStatus.status === 'granted') {
+      if (contactStatus.granted) {
         const { data } = await Contacts.getContactsAsync({
-          fields: [Contacts.Fields.PhoneNumbers],
+          fields: [Contacts.Fields.PhoneNumbers]
         });
 
-        if (data.length > 0) {
-          setContacts(data);
-        }
+        setContacts(data);
       }
 
-      // Load scheduled notifications
-      const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+      const notifications = await Notifications.getAllScheduledNotificationsAsync();
       const ids: Record<string, string> = {};
-      scheduledNotifications.forEach(notification => {
+
+      notifications.forEach(notification => {
         if (notification.content.data.contactId) {
           ids[notification.content.data.contactId] = notification.identifier;
         }
       });
-      setNotificationIds(ids);
+
+      setNotificationsIds(ids);
     })();
+
+    setCurrentDate(new Date());
   }, []);
 
-  const openContactModal = (contact: Contacts.Contact) => {
-    // Check if this contact already has a scheduled notification
+  function handleDateChange(event: any, selectedDate?: Date) {
+    setShowDatePicker(false);
+
+    if (!selectedDate) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (selectedDate >= today) {
+      setCurrentDate(selectedDate);
+      return;
+    }
+
+    setCurrentDate(today);
+  }
+
+  function openContactModal(contact: Contacts.Contact) {
     setSelectedContact(contact);
     setIsModalVisible(true);
-  };
+  }
 
-  const closeContactModal = () => {
+  function closeContactModal() {
     setIsModalVisible(false);
     setSelectedContact(null);
-  };
+  }
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      // Ensure the selected date is not before today
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
-      if (selectedDate >= today) {
-        setCurrentDate(selectedDate);
-      } else {
-        // If they selected a date before today, default to today
-        setCurrentDate(today);
-      }
-    }
-  };
-
-  const scheduleNotification = async (contactId: string, contactName: string, date: Date) => {
-    // Cancel existing notification if there is one
-    if (notificationIds[contactId]) {
-      await Notifications.cancelScheduledNotificationAsync(notificationIds[contactId]);
-    }
-
-    // Schedule new notification
-    const notificationId = await Notifications.scheduleNotificationAsync({
-      content: {
-        title: 'Lembrete de pagamento',
-        body: `Hoje é o prazo máximo de ${contactName}`,
-        data: { contactId },
-      },
-      trigger: {
-        date,
-        hour: 9,
-        minute: 0,
-        repeats: false,
-      },
-    });
-
-    // Update our local state
-    setNotificationIds(prev => ({
-      ...prev,
-      [contactId]: notificationId,
-    }));
-  };
-
-  const cancelNotification = async (contactId: string) => {
-    if (notificationIds[contactId]) {
-      await Notifications.cancelScheduledNotificationAsync(notificationIds[contactId]);
-      const newIds = { ...notificationIds };
-      delete newIds[contactId];
-      setNotificationIds(newIds);
-    }
-  };
-
-  const savePaymentDate = async () => {
+  async function savePaymentDate() {
     if (!selectedContact) return;
 
     try {
-      await scheduleNotification(
-        selectedContact.id!,
-        selectedContact.name || 'Contato sem Nome',
-        currentDate
-      );
+      const previousNotificationWithContactId = notificationsIds[selectedContact.id!];
+
+      if (previousNotificationWithContactId) {
+        await Notifications.cancelScheduledNotificationAsync(previousNotificationWithContactId);
+      }
+
+      const notificationId = await Notifications.scheduleNotificationAsync({
+        content: {
+          title: 'Lembrete de pagamento',
+          body: `Hoje é o prazo máximo de ${selectedContact.name || 'Contato sem Nome'}`,
+          data: { contactId: selectedContact.id! },
+        },
+        trigger: {
+          date: currentDate!,
+          type: Notifications.SchedulableTriggerInputTypes.DATE
+        },
+      });
+
+      setNotificationsIds(prev => ({
+        ...prev,
+        [selectedContact.id!]: notificationId
+      }))
+
       closeContactModal();
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error scheduling notification:', error);
     }
-  };
+  }
 
-  const removePaymentDate = async () => {
+  async function removePaymentDate() {
     if (!selectedContact) return;
-
     try {
       await cancelNotification(selectedContact.id!);
       closeContactModal();
-    } catch (error) {
+    }
+    catch (error) {
       console.error('Error canceling notification:', error);
     }
-  };
+  }
 
-  const renderContactItem = ({ item }: { item: Contacts.Contact }) => {
-    const hasNotification = !!notificationIds[item.id!];
+  async function cancelNotification(contactId: string) {
+    if (!notificationsIds[contactId]) return;
+    await Notifications.cancelScheduledNotificationAsync(notificationsIds[contactId]);
+    const newIds = { ...notificationsIds };
+    delete newIds[contactId];
+    setNotificationsIds(newIds);
+  }
+
+  function renderContactItem({ item }: { item: Contacts.Contact }) {
+    const hasNotification = !!notificationsIds[item.id!];
 
     return (
       <ThemedView style={styles.contactItem}>
@@ -157,30 +148,33 @@ export default function TabTwoScreen() {
             {phone.number}
           </ThemedText>
         ))}
+
         {hasNotification && (
           <ThemedText style={styles.paymentDate}>
-            Payment reminder set
+            Data do Lembrete Definida
           </ThemedText>
         )}
+
         <View style={styles.contactActions}>
           <TouchableOpacity onPress={() => openContactModal(item)}>
             <ThemedText type="link">
               {hasNotification ? 'Atualizar Lembrete' : 'Definir Lembrete'}
             </ThemedText>
           </TouchableOpacity>
+
           {hasNotification && (
             <TouchableOpacity
               onPress={() => cancelNotification(item.id!)}
               style={styles.removeButton}>
               <ThemedText type="link" style={styles.removeButtonText}>
-                Remove
+                Remover
               </ThemedText>
             </TouchableOpacity>
           )}
         </View>
       </ThemedView>
     );
-  };
+  }
 
   return (
     <ParallaxScrollView
@@ -206,7 +200,7 @@ export default function TabTwoScreen() {
           contentContainerStyle={styles.listContainer}
         />
       ) : (
-        <ThemedText style={styles.noContactsText}>No contacts found</ThemedText>
+        <ThemedText style={styles.noContactsText}>Nenhum contato encontrado</ThemedText>
       )}
 
       <Modal
@@ -236,16 +230,15 @@ export default function TabTwoScreen() {
                   style={styles.dateButton}
                   onPress={() => setShowDatePicker(true)}>
                   <ThemedText style={styles.dateButtonText}>
-                    {format(currentDate, 'MMMM dd, yyyy')}
+                    {formatDateFns(currentDate!, "dd 'de' MMMM, yyyy", { locale: ptBR })}
                   </ThemedText>
                 </TouchableOpacity>
 
                 {showDatePicker && (
                   <DateTimePicker
-                    value={currentDate}
+                    value={currentDate!}
                     mode="date"
                     display="default"
-                    locale={ptBR}
                     onChange={handleDateChange}
                     minimumDate={new Date()}
                   />
@@ -255,11 +248,11 @@ export default function TabTwoScreen() {
                   style={styles.saveButton}
                   onPress={savePaymentDate}>
                   <ThemedText type="defaultSemiBold" style={styles.saveButtonText}>
-                    {notificationIds[selectedContact.id!] ? 'Atualizar Lembrete' : 'Definir Lembrete'}
+                    {notificationsIds[selectedContact.id!] ? 'Atualizar Lembrete' : 'Definir Lembrete'}
                   </ThemedText>
                 </TouchableOpacity>
 
-                {notificationIds[selectedContact.id!] && (
+                {notificationsIds[selectedContact.id!] && (
                   <TouchableOpacity
                     style={styles.removeButtonModal}
                     onPress={removePaymentDate}>
@@ -282,7 +275,7 @@ export default function TabTwoScreen() {
         </View>
       </Modal>
     </ParallaxScrollView>
-  );
+  )
 }
 
 const styles = StyleSheet.create({
