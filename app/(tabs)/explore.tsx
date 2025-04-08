@@ -1,4 +1,4 @@
-import { FlatList, Modal, StyleSheet, TouchableOpacity, View } from "react-native"
+import { AppState, FlatList, Modal, StyleSheet, TouchableOpacity, View } from "react-native"
 import ParallaxScrollView from "@/components/ParallaxScrollView";
 import { IconSymbol } from "@/components/ui/IconSymbol";
 import * as Contacts from "expo-contacts";
@@ -25,7 +25,7 @@ export default function Explore() {
   const [selectedContact, setSelectedContact] = useState<Contacts.Contact | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [currentDate, setCurrentDate] = useState<Date>();
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [notificationsIds, setNotificationsIds] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -43,19 +43,52 @@ export default function Explore() {
         setContacts(data);
       }
 
-      const notifications = await Notifications.getAllScheduledNotificationsAsync();
-      const ids: Record<string, string> = {};
+      if (notificationStatus.granted) {
+        const notifications = await Notifications.getAllScheduledNotificationsAsync();
+        const ids: Record<string, string> = {};
 
-      notifications.forEach(notification => {
-        if (notification.content.data.contactId) {
-          ids[notification.content.data.contactId] = notification.identifier;
-        }
-      });
+        notifications.forEach(notification => {
+          if (notification.content.data.contactId) {
+            ids[notification.content.data.contactId] = notification.identifier;
+          }
+        });
 
-      setNotificationsIds(ids);
+        setNotificationsIds(ids);
+      }
     })();
 
-    setCurrentDate(new Date());
+    const handleNotificationTriggered = (contactId: string) => {
+      if (contactId) {
+        setNotificationsIds(prev => {
+          const newIds = { ...prev };
+          delete newIds[contactId];
+          return newIds;
+        });
+      }
+    };
+
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        Notifications.getPresentedNotificationsAsync().then((notifications) => {
+          notifications.forEach(notification => {
+            console.log("Notification received while inactive:", notification);
+            if (notification.request.content.data.contactId) {
+              handleNotificationTriggered(notification.request.content.data.contactId);
+            }
+          });
+        });
+      }
+    });
+
+    const receivedSubscription = Notifications.addNotificationReceivedListener(notification => {
+      console.log("Notification received:", notification);
+      handleNotificationTriggered(notification.request.content.data.contactId);
+    });
+
+    return () => {
+      subscription.remove();
+      receivedSubscription.remove();
+    };
   }, []);
 
   function handleDateChange(event: any, selectedDate?: Date) {
@@ -68,10 +101,7 @@ export default function Explore() {
 
     if (selectedDate >= today) {
       setCurrentDate(selectedDate);
-      return;
     }
-
-    setCurrentDate(today);
   }
 
   function openContactModal(contact: Contacts.Contact) {
@@ -88,10 +118,9 @@ export default function Explore() {
     if (!selectedContact) return;
 
     try {
-      const previousNotificationWithContactId = notificationsIds[selectedContact.id!];
-
-      if (previousNotificationWithContactId) {
-        await Notifications.cancelScheduledNotificationAsync(previousNotificationWithContactId);
+      if (notificationsIds[selectedContact.id!]) {
+        // if notification for contact exists, remove it
+        await Notifications.cancelScheduledNotificationAsync(notificationsIds[selectedContact.id!]);
       }
 
       const notificationId = await Notifications.scheduleNotificationAsync({
@@ -99,9 +128,10 @@ export default function Explore() {
           title: 'Lembrete de pagamento',
           body: `Hoje é o prazo máximo de ${selectedContact.name || 'Contato sem Nome'}`,
           data: { contactId: selectedContact.id! },
+          interruptionLevel: 'timeSensitive',
         },
         trigger: {
-          date: currentDate!,
+          date: currentDate,
           type: Notifications.SchedulableTriggerInputTypes.DATE
         },
       });
@@ -191,6 +221,10 @@ export default function Explore() {
         <ThemedText type="title">Contatos</ThemedText>
       </ThemedView>
 
+      <ThemedText>
+        {JSON.stringify(notificationsIds)}
+      </ThemedText>
+
       {contacts.length > 0 ? (
         <FlatList
           data={contacts}
@@ -230,13 +264,13 @@ export default function Explore() {
                   style={styles.dateButton}
                   onPress={() => setShowDatePicker(true)}>
                   <ThemedText style={styles.dateButtonText}>
-                    {formatDateFns(currentDate!, "dd 'de' MMMM, yyyy", { locale: ptBR })}
+                    {formatDateFns(currentDate, "dd 'de' MMMM, yyyy", { locale: ptBR })}
                   </ThemedText>
                 </TouchableOpacity>
 
                 {showDatePicker && (
                   <DateTimePicker
-                    value={currentDate!}
+                    value={currentDate}
                     mode="date"
                     display="default"
                     onChange={handleDateChange}
