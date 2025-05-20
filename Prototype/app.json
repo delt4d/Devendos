@@ -19,7 +19,17 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "permissions": ["READ_CONTACTS", "WRITE_CONTACTS"]
+      "permissions": [
+        "READ_CONTACTS",
+        "WRITE_CONTACTS",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS",
+        "READ_CONTACTS",
+        "WRITE_CONTACTS",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS"
+      ],
+      "package": "com.anonymous.devendos"
     },
     "web": {
       "bundler": "metro",
@@ -38,7 +48,7 @@
         }
       ],
       [
-      "expo-contacts",
+        "expo-contacts",
         {
           "contactsPermission": "Allow $(PRODUCT_NAME) to access and update your contacts."
         }
