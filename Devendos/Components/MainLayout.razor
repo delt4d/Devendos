@@ -1,0 +1,30 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager NavManager
+
+<MudThemeProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+<MudDialogProvider
+    Position="DialogPosition.Center"
+    FullWidth="false"
+    CloseButton="false"
+    BackdropClick="false"
+    CloseOnEscapeKey="true"/>
+
+<MudLayout Class="d-flex flex-column" Style="height: 100vh;">
+    <MudMainContent Class="flex-grow-1 flex-shrink-1">
+        <MudContainer MaxWidth="MaxWidth.Medium">
+            @Body
+        </MudContainer>
+    </MudMainContent>
+
+    <MudTabs Centered="true">
+        <MudTabPanel Text="Home" OnClick="NavigateToHome"/>
+        <MudTabPanel Text="Contatos" OnClick="NavigateToContacts"/>
+    </MudTabs>
+</MudLayout>
+
+@code {
+    public void NavigateToHome() => NavManager.NavigateTo("/");
+    public void NavigateToContacts() => NavManager.NavigateTo("/contacts");
+}

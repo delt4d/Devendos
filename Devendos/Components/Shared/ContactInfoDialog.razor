@@ -1,0 +1,53 @@
+﻿@using System.Globalization
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h5" Style="text-align: center;">
+            @ContactInfo.Name
+        </MudText>
+    </TitleContent>
+    
+    <DialogContent>
+        <MudChat ChatPosition="ChatBubblePosition.Start">
+            @foreach (var phone in ContactInfo.Phones)
+            {
+                <MudChatBubble Class="d-flex gap-1">
+                    <MudIcon Icon="@Icons.Material.Filled.Phone" Title="@phone"/>
+                    <MudText>@phone</MudText>
+                </MudChatBubble>
+            }
+        </MudChat>
+
+        <br/>
+        <MudText Typo="Typo.subtitle1">Data do Lembrete:</MudText>
+        <MudDatePicker @bind-Date="ContactInfo.ReminderData"
+                       Editable="false"
+                       Variant="Variant.Outlined"
+                       AutoClose="false"
+                       Culture="PtBrCulture"
+                       TitleDateFormat="@PtBrCulture.DateTimeFormat.ShortDatePattern"
+                       DateFormat="@PtBrCulture.DateTimeFormat.LongDatePattern"
+                       MinDate="DateTime.Today"/>
+        
+        <br/>
+    </DialogContent>
+    
+    <DialogActions>
+        <MudButton Size="Size.Large" Variant="Variant.Outlined" Color="Color.Primary" OnClick="Cancel">Voltar</MudButton>
+        <MudButton StartIcon="@Icons.Material.Filled.AlarmOn" Size="Size.Large" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Definir Lembrete</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    public required IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter] 
+    public required ContactInfo ContactInfo { get; set; }
+    
+    private static readonly CultureInfo PtBrCulture = new("pt-BR");
+
+    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+
+    private void Cancel() => MudDialog.Cancel();
+}

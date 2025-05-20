@@ -1,0 +1,24 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Devendos", "Devendos\Devendos.csproj", "{F521BC10-59FA-4E8D-AF56-475713B65B76}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD81AEEE-41D2-4A14-8BCD-97F7C1563049}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD81AEEE-41D2-4A14-8BCD-97F7C1563049}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD81AEEE-41D2-4A14-8BCD-97F7C1563049}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD81AEEE-41D2-4A14-8BCD-97F7C1563049}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AA0018E-A0BD-4FDF-A58F-35D8296C0BFB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AA0018E-A0BD-4FDF-A58F-35D8296C0BFB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AA0018E-A0BD-4FDF-A58F-35D8296C0BFB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AA0018E-A0BD-4FDF-A58F-35D8296C0BFB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F521BC10-59FA-4E8D-AF56-475713B65B76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F521BC10-59FA-4E8D-AF56-475713B65B76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F521BC10-59FA-4E8D-AF56-475713B65B76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F521BC10-59FA-4E8D-AF56-475713B65B76}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

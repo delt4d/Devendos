@@ -1,0 +1,52 @@
+﻿@page "/contacts"
+@using Devendos.Components.Shared
+@using Devendos.Services
+@inject IDialogService DialogService
+@inject IContactsService ContactsService
+
+<MudText Typo="Typo.h3">Contatos</MudText>
+<br/>
+
+<MudPaper>
+    <MudList T="string">
+        @foreach (var contact in _contacts)
+        {
+            <MudListItem>
+                <MudText Typo="Typo.subtitle1" Class="text-accent-1">@contact.Name</MudText>
+
+                @foreach (var phone in contact.Phones)
+                {
+                    <MudText>@phone</MudText>
+                }
+
+                <MudLink OnClick="() => ShowDialogAsync(contact)">
+                    Definir Lembrete
+                </MudLink>
+            </MudListItem>
+
+            <MudDivider/>
+        }
+    </MudList>
+</MudPaper>
+
+@code {
+    private List<ContactInfo> _contacts = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await foreach (var contact in ContactsService.GetContactsAsync())
+        {
+            _contacts.Add(contact);
+            StateHasChanged();
+        }
+    }
+
+    private Task ShowDialogAsync(ContactInfo contactInfo)
+    {
+        var parameters = new DialogParameters<ContactInfoDialog>
+        {
+            { x => x.ContactInfo, contactInfo },
+        };
+        return DialogService.ShowAsync<ContactInfoDialog>(null, parameters);
+    }
+}
