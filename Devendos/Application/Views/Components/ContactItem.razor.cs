@@ -32,7 +32,6 @@ public partial class ContactItem(
         StateHasChanged();
         
         await contactsService.RemoveContactReminderDateAsync(ContactInfo.Id);
-        await Task.Delay(TimeSpan.FromSeconds(1));
         ContactInfo.ReminderDate = null;
         IsLoading = false;
         StateHasChanged();

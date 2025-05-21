@@ -54,8 +54,6 @@ else
             _items.Add(item);
         }
 
-        await Task.Delay(TimeSpan.FromSeconds(1));
-        
         _itemsLoaded = true;
         StateHasChanged();
     }
