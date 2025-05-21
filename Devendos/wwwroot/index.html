@@ -17,7 +17,6 @@
 
     <div id="app">
         <div id="_app_loading">
-            Loading...
         </div>
     </div>
 
@@ -27,6 +26,19 @@
         <a class="dismiss">🗙</a>
     </div>
 
+    <script>
+        (async () => {
+            let appLoading = null;
+            let dotsCount = 1;
+            
+            while (appLoading = document.getElementById("_app_loading")) {
+                dotsCount = dotsCount > 3 ? 1 : dotsCount;
+                const dots = ".".repeat(dotsCount++);
+                appLoading.innerHTML = `Loading${dots}`;
+                await new Promise(res => setTimeout(res, 500));
+            }
+        })();
+    </script>
     <script src="_framework/blazor.webview.js" autostart="false"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 </body>
