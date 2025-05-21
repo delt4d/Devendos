@@ -1,4 +1,4 @@
-﻿namespace Devendos.Services;
+﻿namespace Devendos.Application.Services;
 
 public interface IPermissionsService<T> where T : Permissions.BasePermission, new()
 {

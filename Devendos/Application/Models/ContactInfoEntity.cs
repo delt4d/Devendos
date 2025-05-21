@@ -1,4 +1,4 @@
-﻿namespace Devendos.Models;
+﻿namespace Devendos.Application.Models;
 
 public class ContactInfoEntity
 {

@@ -1,4 +1,4 @@
-﻿namespace Devendos.Database;
+﻿namespace Devendos.Application.Database;
 
 public static class SqliteDbConfig
 {

@@ -1,6 +1,4 @@
 ﻿@page "/contacts"
-@using Devendos.Components.Shared
-@using Devendos.Services
 @inject IDialogService DialogService
 @inject IContactsService ContactsService
 
@@ -67,7 +65,7 @@
 
     private Task ShowDialogAsync(ContactInfo contactInfo)
     {
-        var parameters = new DialogParameters<ContactInfoDialog> {
+        var parameters = new DialogParameters<SetContactReminder> {
             {
                 x => x.ContactInfo, 
                 new ContactInfo(contactInfo)
@@ -77,7 +75,7 @@
                 OnSubmit
             }
         };
-        return DialogService.ShowAsync<ContactInfoDialog>(null, parameters);
+        return DialogService.ShowAsync<SetContactReminder>(null, parameters);
     }
 
     private async Task RemoveContactReminderDateAsync(string contactId)

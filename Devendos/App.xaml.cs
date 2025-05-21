@@ -1,6 +1,8 @@
-﻿namespace Devendos;
+﻿using AppControl = Microsoft.Maui.Controls.Application;
 
-public partial class App : Application
+namespace Devendos;
+
+public partial class App : AppControl
 {
     public App()
     {

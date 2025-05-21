@@ -25,7 +25,7 @@
         <ApplicationTitle>Devendos</ApplicationTitle>
 
         <!-- App Identifier -->
-        <ApplicationId>com.companyname.devendos</ApplicationId>
+        <ApplicationId>com.delt4d.devendos</ApplicationId>
 
         <!-- Versions -->
         <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
@@ -70,7 +70,10 @@
     </ItemGroup>
 
     <ItemGroup>
-      <AdditionalFiles Include="Components\Pages\Home.razor" />
+      <AdditionalFiles Include="Application\Views\MainLayout.razor" />
+      <AdditionalFiles Include="Application\Views\Pages\Contacts.razor" />
+      <AdditionalFiles Include="Application\Views\Routes.razor" />
+      <AdditionalFiles Include="Application\Views\_Imports.razor" />
     </ItemGroup>
 
     <ItemGroup>

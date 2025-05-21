@@ -1,8 +1,8 @@
-﻿using Devendos.Database;
-using Devendos.Models;
+﻿using Devendos.Application.Database;
+using Devendos.Application.Models;
 using Communication = Microsoft.Maui.ApplicationModel.Communication;
 
-namespace Devendos.Services;
+namespace Devendos.Application.Services;
 
 public interface IContactsService
 {

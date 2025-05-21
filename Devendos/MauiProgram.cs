@@ -1,5 +1,5 @@
-﻿using Devendos.Database;
-using Devendos.Services;
+﻿using Devendos.Application.Database;
+using Devendos.Application.Services;
 using Microsoft.Extensions.Logging;
 using MudBlazor.Services;
 using SQLite;
