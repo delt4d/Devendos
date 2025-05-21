@@ -19,9 +19,25 @@
                     <MudText>@phone</MudText>
                 }
 
-                <MudLink OnClick="() => ShowDialogAsync(contact)">
-                    Definir Lembrete
-                </MudLink>
+                @if (contact.ReminderDate is null)
+                {
+                    <MudLink Disabled="_contactListChanged" OnClick="() => ShowDialogAsync(contact)">
+                        Definir Lembrete
+                    </MudLink>
+                }
+                else
+                {
+                    <MudText Color="Color.Success">Data do Lembrete Definida</MudText>
+                    <MudElement HtmlTag="div" Class="d-flex">
+                        <MudLink Disabled="_contactListChanged" OnClick="() => ShowDialogAsync(contact)">
+                            Atualizar Lembrete
+                        </MudLink>
+                        <MudSpacer />
+                        <MudLink Color="Color.Error" OnClick="() => RemoveContactReminderDateAsync(contact.Id)">
+                            Remover
+                        </MudLink>
+                    </MudElement>
+                }
             </MudListItem>
 
             <MudDivider/>
@@ -30,23 +46,61 @@
 </MudPaper>
 
 @code {
-    private List<ContactInfo> _contacts = [];
+    private readonly List<ContactInfo> _contacts = [];
+    private bool _contactListChanged = false;
 
     protected override async Task OnInitializedAsync()
     {
+        await UpdateContacts();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_contactListChanged)
+        {
+            _contactListChanged = false;
+            await UpdateContacts();
+        }
+
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private Task ShowDialogAsync(ContactInfo contactInfo)
+    {
+        var parameters = new DialogParameters<ContactInfoDialog> {
+            {
+                x => x.ContactInfo, 
+                new ContactInfo(contactInfo)
+            },
+            {
+                x => x.OnSubmit,
+                OnSubmit
+            }
+        };
+        return DialogService.ShowAsync<ContactInfoDialog>(null, parameters);
+    }
+
+    private async Task RemoveContactReminderDateAsync(string contactId)
+    {
+        await ContactsService.RemoveContactReminderDateAsync(contactId);
+        _contactListChanged = true;
+        StateHasChanged();
+    }
+
+    private async void OnSubmit(ContactInfo contactInfo)
+    {
+        await ContactsService.SaveContactReminderDateAsync(contactInfo.Id, contactInfo.ReminderDate);
+        _contactListChanged = true;
+        StateHasChanged();
+    }
+    
+    private async Task UpdateContacts()
+    {
+        _contacts.Clear();
         await foreach (var contact in ContactsService.GetContactsAsync())
         {
             _contacts.Add(contact);
             StateHasChanged();
         }
-    }
-
-    private Task ShowDialogAsync(ContactInfo contactInfo)
-    {
-        var parameters = new DialogParameters<ContactInfoDialog>
-        {
-            { x => x.ContactInfo, contactInfo },
-        };
-        return DialogService.ShowAsync<ContactInfoDialog>(null, parameters);
     }
 }

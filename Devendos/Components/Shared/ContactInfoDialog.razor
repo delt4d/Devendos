@@ -20,7 +20,7 @@
 
         <br/>
         <MudText Typo="Typo.subtitle1">Data do Lembrete:</MudText>
-        <MudDatePicker @bind-Date="ContactInfo.ReminderData"
+        <MudDatePicker @bind-Date="ContactInfo.ReminderDate"
                        Editable="false"
                        Variant="Variant.Outlined"
                        AutoClose="false"
@@ -34,7 +34,7 @@
     
     <DialogActions>
         <MudButton Size="Size.Large" Variant="Variant.Outlined" Color="Color.Primary" OnClick="Cancel">Voltar</MudButton>
-        <MudButton StartIcon="@Icons.Material.Filled.AlarmOn" Size="Size.Large" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Definir Lembrete</MudButton>
+        <MudButton Disabled="ContactInfo.ReminderDate is null" StartIcon="@Icons.Material.Filled.AlarmOn" Size="Size.Large" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Definir Lembrete</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -45,9 +45,17 @@
     [Parameter] 
     public required ContactInfo ContactInfo { get; set; }
     
+    [Parameter]
+    public required Action<ContactInfo> OnSubmit { get; set; }
+    
     private static readonly CultureInfo PtBrCulture = new("pt-BR");
 
-    private void Submit() => MudDialog.Close(DialogResult.Ok(true));
+    private void Submit()
+    {
+        OnSubmit.Invoke(ContactInfo);
+        MudDialog.Close(DialogResult.Ok(true));
+    }
 
     private void Cancel() => MudDialog.Cancel();
+
 }

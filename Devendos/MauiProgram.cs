@@ -1,6 +1,8 @@
-﻿using Devendos.Services;
+﻿using Devendos.Database;
+using Devendos.Services;
 using Microsoft.Extensions.Logging;
 using MudBlazor.Services;
+using SQLite;
 
 namespace Devendos;
 
@@ -18,6 +20,8 @@ public static class MauiProgram
         builder.Services.AddMudServices();
         builder.Services.AddTransient<IContactsService, ContactsService>();
         builder.Services.AddTransient(typeof(IPermissionsService<>), typeof(PermissionsService<>));
+        builder.Services.AddSingleton<ISQLiteAsyncConnection>(sp => new SQLiteAsyncConnection(SqliteDbConfig.DatabasePath, SqliteDbConfig.Flags));
+        builder.Services.AddSingleton<IAppDb, AppDb>();
 
 #if DEBUG
         builder.Services.AddBlazorWebViewDeveloperTools();
