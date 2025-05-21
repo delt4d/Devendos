@@ -4,24 +4,46 @@
 <MudText Typo="Typo.h3">Contatos</MudText>
 <br/>
 
-<MudPaper>
-    <MudList T="string">
-        @foreach (var item in _items)
+
+@if (!_itemsLoaded)
+{
+    <MudProgressCircular Indeterminate="true" 
+                         Color="Color.Primary" 
+                         Size="Size.Large" />
+}
+else
+{
+    <MudPaper>
+        @if (ItemsCount > 0)
         {
-            <MudListItem>
-                <ContactItem ContactInfo="item.Contact" />
-                @if (!IsLast(item))
+            <MudList T="MudElement" ReadOnly="true">
+                @foreach (var item in _items)
                 {
-                    <MudDivider />   
+                    <MudListItem>
+                        <MudElement HtmlTag="div">
+                            <ContactItem ContactInfo="item.Contact"/>
+                            @if (!IsLast(item))
+                            {
+                                <MudDivider Class="mt-4" />
+                            }
+                        </MudElement>
+                    </MudListItem>
                 }
-            </MudListItem>
+            </MudList>
         }
-    </MudList>
-</MudPaper>
+        else
+        {
+            <MudText Typo="Typo.subtitle1">
+                Nenhum contato foi obtido.
+            </MudText>
+        }
+    </MudPaper>
+}
 
 @code {
     private readonly List<Item> _items = [];
     private int ItemsCount => _items.Count;
+    private bool _itemsLoaded;
 
     protected override async Task OnInitializedAsync()
     {
@@ -30,8 +52,12 @@
         await foreach (var item in GetItemsAsync())
         {
             _items.Add(item);
-            StateHasChanged();
         }
+
+        await Task.Delay(TimeSpan.FromSeconds(1));
+        
+        _itemsLoaded = true;
+        StateHasChanged();
     }
 
     private async IAsyncEnumerable<Item> GetItemsAsync()

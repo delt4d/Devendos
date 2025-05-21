@@ -17,6 +17,7 @@
 
     <div id="app">
         <div id="_app_loading">
+            Loading...
         </div>
     </div>
 
@@ -29,13 +30,13 @@
     <script>
         (async () => {
             let appLoading = null;
-            let dotsCount = 1;
+            let dotsCount = 3;
             
             while (appLoading = document.getElementById("_app_loading")) {
                 dotsCount = dotsCount > 3 ? 1 : dotsCount;
                 const dots = ".".repeat(dotsCount++);
                 appLoading.innerHTML = `Loading${dots}`;
-                await new Promise(res => setTimeout(res, 500));
+                await new Promise(res => setTimeout(res, 1000));
             }
         })();
     </script>

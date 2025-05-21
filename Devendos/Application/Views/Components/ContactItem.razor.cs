@@ -12,32 +12,34 @@ public partial class ContactItem(
     [Parameter]
     public required ContactInfo ContactInfo { get; set; }
 
-    public bool Disabled { get; set; } = false;
+    private bool IsLoading { get; set; }
+
+    private DialogParameters<SetContactReminder> DialogParams => new()
+    {
+        {
+            x => x.ContactInfo,
+            ContactInfo
+        },
+        {
+            x => x.OnReminderDateSet,
+            StateHasChanged
+        }
+    };
     
     private async Task RemoveContactReminderDateAsync()
     {
-        Disabled = true;
+        IsLoading = true;
         StateHasChanged();
         
         await contactsService.RemoveContactReminderDateAsync(ContactInfo.Id);
+        await Task.Delay(TimeSpan.FromSeconds(1));
         ContactInfo.ReminderDate = null;
-        Disabled = false;
+        IsLoading = false;
         StateHasChanged();
     }
     
     private async Task ShowDialogAsync()
     {
-        var parameters = new DialogParameters<SetContactReminder> {
-            {
-                x => x.ContactInfo, 
-                ContactInfo
-            },
-            {
-                x => x.OnReminderDateSet,
-                StateHasChanged
-            }
-        };
-        
-        await dialogService.ShowAsync<SetContactReminder>(null, parameters);
+        await dialogService.ShowAsync<SetContactReminder>(null, DialogParams);
     }
 }
