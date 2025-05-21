@@ -1,0 +1,29 @@
+﻿<MudText Typo="Typo.subtitle1" Class="text-accent-1">
+    @ContactInfo.Name
+</MudText>
+
+@foreach (var phone in ContactInfo.Phones)
+{
+    <MudText>@phone</MudText>
+}
+
+@if (ContactInfo.ReminderDate is null)
+{
+    <MudLink Disabled="Disabled" OnClick="ShowDialogAsync">
+        Definir Lembrete
+    </MudLink>
+}
+else
+{
+    <MudText Color="Color.Success">Data do Lembrete Definida</MudText>
+    <MudElement HtmlTag="div" Class="d-flex">
+        <MudLink Disabled="Disabled" OnClick="ShowDialogAsync">
+            Atualizar Lembrete
+        </MudLink>
+        <MudSpacer />
+        <MudLink Color="Color.Error" OnClick="RemoveContactReminderDateAsync">
+            Remover
+        </MudLink>
+    </MudElement>
+}
+

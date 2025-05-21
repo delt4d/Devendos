@@ -1,6 +1,4 @@
-﻿@using System.Globalization
-
-<MudDialog>
+﻿<MudDialog>
     <TitleContent>
         <MudText Typo="Typo.h5" Style="text-align: center;">
             @ContactInfo.Name
@@ -33,29 +31,20 @@
     </DialogContent>
     
     <DialogActions>
-        <MudButton Size="Size.Large" Variant="Variant.Outlined" Color="Color.Primary" OnClick="Cancel">Voltar</MudButton>
-        <MudButton Disabled="ContactInfo.ReminderDate is null" StartIcon="@Icons.Material.Filled.AlarmOn" Size="Size.Large" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Definir Lembrete</MudButton>
+        <MudButton Size="Size.Large"
+                   Variant="Variant.Outlined"
+                   Color="Color.Primary"
+                   OnClick="Cancel">
+            Voltar
+        </MudButton>
+        
+        <MudButton Disabled="ContactInfo.ReminderDate is null"
+                   StartIcon="@Icons.Material.Filled.AlarmOn"
+                   Size="Size.Large"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   OnClick="SaveReminderDateAsync">
+            Definir Lembrete
+        </MudButton>
     </DialogActions>
 </MudDialog>
-
-@code {
-    [CascadingParameter]
-    public required IMudDialogInstance MudDialog { get; set; }
-
-    [Parameter] 
-    public required ContactInfo ContactInfo { get; set; }
-    
-    [Parameter]
-    public required Action<ContactInfo> OnSubmit { get; set; }
-    
-    private static readonly CultureInfo PtBrCulture = new("pt-BR");
-
-    private void Submit()
-    {
-        OnSubmit.Invoke(ContactInfo);
-        MudDialog.Close(DialogResult.Ok(true));
-    }
-
-    private void Cancel() => MudDialog.Cancel();
-
-}

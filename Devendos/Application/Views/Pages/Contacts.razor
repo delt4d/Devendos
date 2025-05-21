@@ -1,5 +1,4 @@
 ﻿@page "/contacts"
-@inject IDialogService DialogService
 @inject IContactsService ContactsService
 
 <MudText Typo="Typo.h3">Contatos</MudText>
@@ -7,98 +6,44 @@
 
 <MudPaper>
     <MudList T="string">
-        @foreach (var contact in _contacts)
+        @foreach (var item in _items)
         {
             <MudListItem>
-                <MudText Typo="Typo.subtitle1" Class="text-accent-1">@contact.Name</MudText>
-
-                @foreach (var phone in contact.Phones)
+                <ContactItem ContactInfo="item.Contact" />
+                @if (!IsLast(item))
                 {
-                    <MudText>@phone</MudText>
-                }
-
-                @if (contact.ReminderDate is null)
-                {
-                    <MudLink Disabled="_contactListChanged" OnClick="() => ShowDialogAsync(contact)">
-                        Definir Lembrete
-                    </MudLink>
-                }
-                else
-                {
-                    <MudText Color="Color.Success">Data do Lembrete Definida</MudText>
-                    <MudElement HtmlTag="div" Class="d-flex">
-                        <MudLink Disabled="_contactListChanged" OnClick="() => ShowDialogAsync(contact)">
-                            Atualizar Lembrete
-                        </MudLink>
-                        <MudSpacer />
-                        <MudLink Color="Color.Error" OnClick="() => RemoveContactReminderDateAsync(contact.Id)">
-                            Remover
-                        </MudLink>
-                    </MudElement>
+                    <MudDivider />   
                 }
             </MudListItem>
-
-            <MudDivider/>
         }
     </MudList>
 </MudPaper>
 
 @code {
-    private readonly List<ContactInfo> _contacts = [];
-    private bool _contactListChanged = false;
+    private readonly List<Item> _items = [];
+    private int ItemsCount => _items.Count;
 
     protected override async Task OnInitializedAsync()
     {
-        await UpdateContacts();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (_contactListChanged)
+        _items.Clear();
+        
+        await foreach (var item in GetItemsAsync())
         {
-            _contactListChanged = false;
-            await UpdateContacts();
-        }
-
-        await base.OnAfterRenderAsync(firstRender);
-    }
-
-    private Task ShowDialogAsync(ContactInfo contactInfo)
-    {
-        var parameters = new DialogParameters<SetContactReminder> {
-            {
-                x => x.ContactInfo, 
-                new ContactInfo(contactInfo)
-            },
-            {
-                x => x.OnSubmit,
-                OnSubmit
-            }
-        };
-        return DialogService.ShowAsync<SetContactReminder>(null, parameters);
-    }
-
-    private async Task RemoveContactReminderDateAsync(string contactId)
-    {
-        await ContactsService.RemoveContactReminderDateAsync(contactId);
-        _contactListChanged = true;
-        StateHasChanged();
-    }
-
-    private async void OnSubmit(ContactInfo contactInfo)
-    {
-        await ContactsService.SaveContactReminderDateAsync(contactInfo.Id, contactInfo.ReminderDate);
-        _contactListChanged = true;
-        StateHasChanged();
-    }
-    
-    private async Task UpdateContacts()
-    {
-        _contacts.Clear();
-        await foreach (var contact in ContactsService.GetContactsAsync())
-        {
-            _contacts.Add(contact);
+            _items.Add(item);
             StateHasChanged();
         }
     }
+
+    private async IAsyncEnumerable<Item> GetItemsAsync()
+    {
+        await foreach (var contact in ContactsService.GetContactsAsync())
+        {
+            var item = new Item(ItemsCount, contact);
+            yield return item;
+        }
+    }
+
+    private bool IsLast(Item item) => item.Index + 1 == ItemsCount;
+
+    private record Item(int Index, ContactInfo Contact);
 }
