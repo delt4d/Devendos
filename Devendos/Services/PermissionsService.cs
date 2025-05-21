@@ -31,9 +31,3 @@ public class PermissionsService<T> : IPermissionsService<T> where T : Permission
         return status;
     }
 }
-
-public interface IClass<T> { }
-
-public class Cls<T> : IClass<T>
-{
-}
