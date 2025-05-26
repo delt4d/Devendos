@@ -1,0 +1,1 @@
+﻿dotnet publish devendos.csproj -f:net9.0-android -c Release /p:AndroidSigningKeyPass=testSigninPass123 /p:AndroidSigninStorePass=123456 /p:AndroidSigningKeyAlias=devendos_test /p:AndroidStore=true
