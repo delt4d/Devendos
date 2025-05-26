@@ -1,0 +1,32 @@
+﻿@if (!_firstLoad)
+{
+    <MudProgressCircular Indeterminate="true" 
+                         Color="Color.Primary" 
+                         Size="Size.Large" />
+}
+else if (FilteredContacts.Count > 0)
+{
+    <MudPaper>
+        <MudList T="MudListItem<MudElement>" ReadOnly="true">
+            @foreach (var (index, contact) in GetContactsWithIndex(FilteredContacts))
+            {
+                <MudListItem>
+                    <MudElement HtmlTag="div">
+                        <ContactItem ContactInfo="contact"/>
+                        
+                        @if (!IsLastItem(index, FilteredContacts.Count))
+                        {
+                            <MudDivider Class="mt-4" />
+                        }
+                    </MudElement>
+                </MudListItem>
+            }
+        </MudList>
+    </MudPaper>
+}
+else
+{
+    <MudText Typo="Typo.subtitle1">
+        Nenhum contato foi encontrado.
+    </MudText>
+}

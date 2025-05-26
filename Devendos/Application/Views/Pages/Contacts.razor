@@ -1,73 +1,21 @@
 ﻿@page "/contacts"
-@inject IContactsService ContactsService
 
 <MudText Typo="Typo.h3">Contatos</MudText>
 <br/>
 
+<MudTextField T="string" 
+              @bind-Value="SearchValue"
+              Variant="Variant.Outlined"
+              DebounceInterval="@TimeSpan.FromSeconds(1).Milliseconds"
+              InputMode="InputMode.search"
+              InputType="InputType.Search"
+              Immediate="true" />
 
-@if (!_itemsLoaded)
-{
-    <MudProgressCircular Indeterminate="true" 
-                         Color="Color.Primary" 
-                         Size="Size.Large" />
-}
-else
-{
-    <MudPaper>
-        @if (ItemsCount > 0)
-        {
-            <MudList T="MudElement" ReadOnly="true">
-                @foreach (var item in _items)
-                {
-                    <MudListItem>
-                        <MudElement HtmlTag="div">
-                            <ContactItem ContactInfo="item.Contact"/>
-                            @if (!IsLast(item))
-                            {
-                                <MudDivider Class="mt-4" />
-                            }
-                        </MudElement>
-                    </MudListItem>
-                }
-            </MudList>
-        }
-        else
-        {
-            <MudText Typo="Typo.subtitle1">
-                Nenhum contato foi obtido.
-            </MudText>
-        }
-    </MudPaper>
-}
+<MudElement HtmlTag="br" />
+<ContactList @bind-SearchValue="SearchValue" />
 
 @code {
-    private readonly List<Item> _items = [];
-    private int ItemsCount => _items.Count;
-    private bool _itemsLoaded;
 
-    protected override async Task OnInitializedAsync()
-    {
-        _items.Clear();
-        
-        await foreach (var item in GetItemsAsync())
-        {
-            _items.Add(item);
-        }
+    private string SearchValue { get; set; } = string.Empty;
 
-        _itemsLoaded = true;
-        StateHasChanged();
-    }
-
-    private async IAsyncEnumerable<Item> GetItemsAsync()
-    {
-        await foreach (var contact in ContactsService.GetContactsAsync())
-        {
-            var item = new Item(ItemsCount, contact);
-            yield return item;
-        }
-    }
-
-    private bool IsLast(Item item) => item.Index + 1 == ItemsCount;
-
-    private record Item(int Index, ContactInfo Contact);
 }

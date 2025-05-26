@@ -14,7 +14,7 @@ public partial class ContactItem(
 
     private bool IsLoading { get; set; }
 
-    private DialogParameters<SetContactReminder> DialogParams => new()
+    private DialogParameters<ContactReminderDialog> DialogParams => new()
     {
         {
             x => x.ContactInfo,
@@ -39,6 +39,6 @@ public partial class ContactItem(
     
     private async Task ShowDialogAsync()
     {
-        await dialogService.ShowAsync<SetContactReminder>(null, DialogParams);
+        await dialogService.ShowAsync<ContactReminderDialog>(null, DialogParams);
     }
 }

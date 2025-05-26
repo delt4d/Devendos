@@ -6,7 +6,7 @@ using MudBlazor;
 
 namespace Devendos.Application.Views.Components;
 
-public partial class SetContactReminder(IContactsService contactsService) : ComponentBase
+public partial class ContactReminderDialog(IContactsService contactsService) : ComponentBase
 {
     private static readonly CultureInfo PtBrCulture = new("pt-BR");
     
