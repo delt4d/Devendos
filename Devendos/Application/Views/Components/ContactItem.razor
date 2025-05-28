@@ -9,15 +9,15 @@
 else
 {
     <MudText Typo="Typo.subtitle1" Class="text-accent-1">
-        @ContactInfo.Name
+        @Contact.Name
     </MudText>
 
-    @foreach (var phone in ContactInfo.Phones)
+    @foreach (var phone in Contact.Phones)
     {
         <MudText>@phone</MudText>
     }
 
-    @if (ContactInfo.ReminderDate is null)
+    @if (Contact.ReminderDate is null)
     {
         <MudLink OnClick="ShowDialogAsync">
             Definir Lembrete

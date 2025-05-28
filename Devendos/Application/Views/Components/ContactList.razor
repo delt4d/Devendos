@@ -1,22 +1,16 @@
-﻿@if (!_firstLoad)
-{
-    <MudProgressCircular Indeterminate="true" 
-                         Color="Color.Primary" 
-                         Size="Size.Large" />
-}
-else if (FilteredContacts.Count > 0)
+﻿@if (Contacts.Any())
 {
     <MudPaper>
         <MudList T="MudListItem<MudElement>" ReadOnly="true">
-            @foreach (var (index, contact) in GetContactsWithIndex(FilteredContacts))
+            @foreach (var (isLastItem, contact) in GetContacts())
             {
                 <MudListItem>
                     <MudElement HtmlTag="div">
-                        <ContactItem ContactInfo="contact"/>
+                        <ContactItem Contact="contact" />
                         
-                        @if (!IsLastItem(index, FilteredContacts.Count))
+                        @if (!isLastItem)
                         {
-                            <MudDivider Class="mt-4" />
+                            <MudDivider Class="mt-4"/>
                         }
                     </MudElement>
                 </MudListItem>

@@ -10,7 +10,10 @@ public partial class ContactItem(
     IDialogService dialogService) : ComponentBase
 {
     [Parameter]
-    public required ContactInfo ContactInfo { get; set; }
+    public required ContactInfo Contact { get; set; }
+    
+    [Parameter]
+    public EventCallback<ContactInfo> ContactInfoChanged { get; set; }
 
     private bool IsLoading { get; set; }
 
@@ -18,7 +21,7 @@ public partial class ContactItem(
     {
         {
             x => x.ContactInfo,
-            ContactInfo
+            Contact
         },
         {
             x => x.OnReminderDateSet,
@@ -31,8 +34,8 @@ public partial class ContactItem(
         IsLoading = true;
         StateHasChanged();
         
-        await contactsService.RemoveContactReminderDateAsync(ContactInfo.Id);
-        ContactInfo.ReminderDate = null;
+        await contactsService.RemoveContactReminderDateAsync(Contact.Id);
+        Contact.ReminderDate = null;
         IsLoading = false;
         StateHasChanged();
     }

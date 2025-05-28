@@ -5,6 +5,7 @@
 
 <MudTextField T="string" 
               @bind-Value="SearchValue"
+              Label="Filtrar Contatos"
               Variant="Variant.Outlined"
               DebounceInterval="@TimeSpan.FromSeconds(1).Milliseconds"
               InputMode="InputMode.search"
@@ -12,7 +13,8 @@
               Immediate="true" />
 
 <MudElement HtmlTag="br" />
-<ContactList @bind-SearchValue="SearchValue" />
+
+<ContactListSearch @bind-SearchValue="SearchValue" />
 
 @code {
 

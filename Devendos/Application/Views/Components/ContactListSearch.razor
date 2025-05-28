@@ -1,0 +1,11 @@
+﻿@if (!_firstLoad)
+{
+    <MudProgressCircular 
+        Indeterminate="true" 
+        Color="Color.Primary" 
+        Size="Size.Large" />
+}
+else
+{
+    <ContactList Contacts="_contactsFilter.FilteredContacts" />
+}
