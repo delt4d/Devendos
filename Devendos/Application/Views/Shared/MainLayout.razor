@@ -18,13 +18,45 @@
         </MudContainer>
     </MudMainContent>
 
-    <MudTabs Centered="true">
-        <MudTabPanel Text="Home" OnClick="NavigateToHome"/>
-        <MudTabPanel Text="Contatos" OnClick="NavigateToContacts"/>
+    <MudTabs Centered="true" @bind-ActivePanelIndex="_currentTab" MinimumTabWidth="122px">
+        <MudTabPanel 
+            Text="Home"
+            OnClick="() => NavManager.NavigateTo(HomeRoute)"
+        />
+        
+        <MudTabPanel 
+            Text="Contatos" 
+            OnClick="() => NavManager.NavigateTo(ContactsRoute)"
+        />
+        
+        <MudTabPanel 
+            Text="Lembretes" 
+            OnClick="() => NavManager.NavigateTo(RemindersRoute)"
+        />
     </MudTabs>
 </MudLayout>
 
 @code {
-    public void NavigateToHome() => NavManager.NavigateTo("/");
-    public void NavigateToContacts() => NavManager.NavigateTo("/contacts");
+    private const string HomeRoute = "/home";
+    private const string ContactsRoute = "/contacts";
+    private const string RemindersRoute = "/reminders";
+    
+    private static int _currentTab = 0;
+    
+    protected override void OnInitialized()
+    {
+        NavManager.RegisterLocationChangingHandler((ctx) =>
+        {
+            var location = ctx.TargetLocation;
+            
+            if (location.Contains("/home"))
+                _currentTab = 0;
+            else if (location.Contains("/contacts"))
+                _currentTab = 1;
+            else if (location.Contains("/reminders"))
+                _currentTab = 2;
+            
+            return ValueTask.CompletedTask;
+        });
+    }
 }
