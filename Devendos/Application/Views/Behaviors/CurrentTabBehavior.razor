@@ -1,0 +1,31 @@
+﻿@inject NavigationManager Navigation
+
+@code 
+{
+    [Parameter]
+    public int CurrentTab { get; set; }
+    
+    [Parameter]
+    public Action<int>? OnTabChanged { get; set; }
+    
+    protected override void OnInitialized()
+    {
+        Navigation.RegisterLocationChangingHandler((ctx) =>
+        {
+            var location = ctx.TargetLocation;
+            
+            if (location.Contains("/home"))
+                CurrentTab = 0;
+            
+            else if (location.Contains("/contacts"))
+                CurrentTab = 1;
+            
+            else if (location.Contains("/reminders"))
+                CurrentTab = 2;
+            
+            OnTabChanged?.Invoke(CurrentTab);
+            
+            return ValueTask.CompletedTask;
+        });
+    }
+}
