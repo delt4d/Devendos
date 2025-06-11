@@ -13,7 +13,7 @@ public partial class ContactItem(
     public required ContactInfo Contact { get; set; }
     
     [Parameter]
-    public EventCallback<ContactInfo> ContactInfoChanged { get; set; }
+    public EventCallback<ContactInfo> ContactChanged { get; set; }
 
     private bool IsLoading { get; set; }
 
@@ -28,16 +28,19 @@ public partial class ContactItem(
             StateHasChanged
         }
     };
-    
+
     private async Task RemoveContactReminderDateAsync()
     {
         IsLoading = true;
         StateHasChanged();
-        
+
         await contactsService.RemoveContactReminderDateAsync(Contact.Id);
         Contact.ReminderDate = null;
         IsLoading = false;
         StateHasChanged();
+
+        if (ContactChanged.HasDelegate)
+            await ContactChanged.InvokeAsync(Contact);
     }
     
     private async Task ShowDialogAsync()

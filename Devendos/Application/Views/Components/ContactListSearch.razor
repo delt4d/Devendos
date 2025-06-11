@@ -7,5 +7,8 @@
 }
 else
 {
-    <ContactList Contacts="_searchService.FilteredContacts" />
+    <ContactList 
+        OnContactInfoChanged="async (contact) => await ContactInfoChanged(contact)"
+        Contacts="_searchService.FilteredContacts" 
+    />
 }

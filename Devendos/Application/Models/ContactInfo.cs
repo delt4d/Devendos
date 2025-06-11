@@ -7,8 +7,13 @@ public class ContactInfo(string id, string name, string[] phones, DateTime? remi
     public string[] Phones { get; } = phones;
     public DateTime? ReminderDate { get; set; } = reminderDate;
 
-    public ContactInfo(ContactInfo contactInfo) : 
-        this(contactInfo.Id, contactInfo.Name, contactInfo.Phones, contactInfo.ReminderDate)
+    public ContactInfo(ContactInfo contactInfo) 
+        : this(
+            contactInfo.Id,
+            contactInfo.Name,
+            contactInfo.Phones,
+            contactInfo.ReminderDate
+        )
     {
     }
 }

@@ -9,9 +9,9 @@ public partial class ContactListSearch(IContactsSearchService searchService) : C
     private readonly IContactsSearchService _searchService = searchService;
     private bool _firstLoad;
 
-    [Parameter] 
+    [Parameter]
     public string SearchValue { get; set; } = string.Empty;
-    
+
     [Parameter]
     public EventCallback<string> SearchValueChanged { get; set; }
 
@@ -35,5 +35,16 @@ public partial class ContactListSearch(IContactsSearchService searchService) : C
     {
         _searchService.Contacts = Contacts;
         _searchService.UpdateSearchText(SearchValue);
+    }
+
+    private async Task ContactInfoChanged(ContactInfo contact)
+    {
+        Contacts = Contacts.Select(prevContact =>
+            prevContact.Id == contact.Id
+                ? contact
+                : prevContact);
+
+        if (ContactsChanged.HasDelegate)
+            await ContactsChanged.InvokeAsync(Contacts);
     }
 }

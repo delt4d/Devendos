@@ -6,7 +6,10 @@
             {
                 <MudListItem>
                     <MudElement HtmlTag="div">
-                        <ContactItem Contact="contact" />
+                        <ContactItem 
+                            Contact="contact" 
+                            ContactChanged="NotifyContactItemChanged" 
+                        />
                         
                         @if (!isLastItem)
                         {
