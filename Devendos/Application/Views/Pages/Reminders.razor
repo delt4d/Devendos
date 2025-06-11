@@ -1,7 +1,45 @@
 ﻿@page "/reminders"
+@inject IContactsService _contactsService
 
-<h3>Reminders</h3>
+<MudText Type="Type.h3">Lembretes</MudText>
+<br/>
+
+<MudTextField T="string" 
+              @bind-Value="_searchValue"
+              Label="Filtrar Lembretes"
+              Variant="Variant.Outlined"
+              DebounceInterval="@TimeSpan.FromSeconds(1).Milliseconds"
+              InputMode="InputMode.search"
+              InputType="InputType.Search"
+              Immediate="true" />
+
+<MudElement HtmlTag="br" />
+
+<ContactListSearch 
+    Contacts="@_contacts"
+    ContactsChanged="OnContactsChanged"
+    @bind-SearchValue="_searchValue" />
 
 @code {
-    
+
+    private string _searchValue { get; set; } = string.Empty;
+    private List<ContactInfo> _contacts { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await foreach (var contact in _contactsService.GetContactsAsync())
+        {
+            if (contact.ReminderDate is not null)
+                _contacts.Add(contact);
+        }
+
+        StateHasChanged();
+    }
+
+    private void OnContactsChanged(IEnumerable<ContactInfo> contacts) 
+    {
+        _contacts = contacts.Where(contact => contact.ReminderDate is not null).ToList();
+        StateHasChanged();
+    }
+
 }

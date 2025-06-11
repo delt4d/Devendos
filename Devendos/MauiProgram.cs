@@ -19,6 +19,7 @@ public static class MauiProgram
         builder.Services.AddMauiBlazorWebView();
         builder.Services.AddMudServices();
         builder.Services.AddTransient<IContactsService, ContactsService>();
+        builder.Services.AddTransient<IContactsSearchService, ContactsSearchService>();
         builder.Services.AddTransient(typeof(IPermissionsService<>), typeof(PermissionsService<>));
         builder.Services.AddSingleton<ISQLiteAsyncConnection>(sp => new SQLiteAsyncConnection(SqliteDbConfig.DatabasePath, SqliteDbConfig.Flags));
         builder.Services.AddSingleton<IAppDb, AppDb>();

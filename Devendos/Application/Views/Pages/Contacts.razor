@@ -1,10 +1,11 @@
 ﻿@page "/contacts"
+@inject IContactsService _contactsService
 
 <MudText Typo="Typo.h3">Contatos</MudText>
 <br/>
 
 <MudTextField T="string" 
-              @bind-Value="SearchValue"
+              @bind-Value="_searchValue"
               Label="Filtrar Contatos"
               Variant="Variant.Outlined"
               DebounceInterval="@TimeSpan.FromSeconds(1).Milliseconds"
@@ -14,10 +15,20 @@
 
 <MudElement HtmlTag="br" />
 
-<ContactListSearch @bind-SearchValue="SearchValue" />
+<ContactListSearch  
+    Contacts="@_contacts"
+    @bind-SearchValue="_searchValue" />
 
 @code {
 
-    private string SearchValue { get; set; } = string.Empty;
+    private string _searchValue { get; set; } = string.Empty;
+    private List<ContactInfo> _contacts { get; set; } = [];
 
+    protected override async Task OnInitializedAsync()
+    {
+        await foreach (var item in _contactsService.GetContactsAsync())
+            _contacts.Add(item);
+
+        StateHasChanged();
+    }
 }
